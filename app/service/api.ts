@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://health-api-production-a9f7.up.railway.app",
+  baseURL: "https://story-book-backend-production.up.railway.app",
+  // baseURL: "http://localhost:8080",
 });
 
 api.interceptors.request.use((config) => {
@@ -13,3 +14,5 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+

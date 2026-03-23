@@ -9,75 +9,53 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Container,
   Card,
   CardContent,
   CircularProgress,
   Box,
   Button,
-  Stack,
 } from "@mui/material";
-
-// ===== Types =====
-type Water = {
-  totalIntake: number;
-};
-
-type Nutrition = {
-  totalCalories: number;
-};
-
-type Sleep = {
-  totalSleep: number;
-};
-
-type Workout = {
-  totalMinutes: number;
-};
+import { Book, Story } from "../types/books";
+import { Footer } from "../components/Footer";
+import BookCard from "../components/BookCard";
 
 export default function Dashboard() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-
+  const { data: books = [] } = useQuery({
+    queryKey: ["books"],
+    queryFn: async () => {
+      const res = await api.get("/stories");
+      return res.data;
+    },
+  });
   useEffect(() => {
     setToken(localStorage.getItem("token"));
     setMounted(true);
   }, []);
 
-  // ===== Queries =====
-  const { data: water, isLoading: loadingWater } = useQuery<Water>({
-    queryKey: ["water"],
-    queryFn: async () => (await api.get("/water?userId=1")).data,
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5,
+  const { data: stories = [] } = useQuery<Story[]>({
+    queryKey: ["stories"],
+    queryFn: async () => (await api.get("/stories")).data,
   });
+  const totalStories = stories.length;
 
-  const { data: nutrition, isLoading: loadingNutrition } = useQuery<Nutrition>({
-    queryKey: ["nutrition"],
-    queryFn: async () => (await api.get("/nutrition?userId=1")).data,
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5,
-  });
+  const totalAuthors = new Set(stories.map((s) => s.author).filter(Boolean))
+    .size;
 
-  const { data: sleep, isLoading: loadingSleep } = useQuery<Sleep>({
-    queryKey: ["sleep"],
-    queryFn: async () => (await api.get("/sleep?userId=1")).data,
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5,
-  });
+  const totalChapters = stories.reduce(
+    (sum, s) => sum + (s.totalChapters || 0),
+    0,
+  );
 
-  const { data: workout, isLoading: loadingWorkout } = useQuery<Workout>({
-    queryKey: ["workout"],
-    queryFn: async () => (await api.get("/workouts?userId=1")).data,
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const isLoading =
-    loadingWater || loadingNutrition || loadingSleep || loadingWorkout;
-
+  const avgPrice =
+    stories.length > 0
+      ? Math.round(
+          stories.reduce((sum, s) => sum + (s.price || 0), 0) / stories.length,
+        )
+      : 0;
   // ===== Logout =====
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -101,16 +79,21 @@ export default function Dashboard() {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        mt: 3,
+      }}
+    >
       {/* ===== Header ===== */}
       <AppBar
         position="static"
         elevation={0}
-        sx={{ background: "transparent", color: "#000", px: 1 }}
+        sx={{ background: "transparent", color: "#000", mt: 4 }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant="h6">Dashboard</Typography>
-
+        <Toolbar sx={{ justifyContent: "flex-end" }}>
           <Button
             onClick={handleLogout}
             sx={{
@@ -131,93 +114,113 @@ export default function Dashboard() {
       </AppBar>
 
       {/* ===== Content ===== */}
-      <Stack sx={{ m: 3, my: 2 }} display={{ xm: "block", md: "flex" }}>
-        {isLoading ? (
-          <Box textAlign="center">
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: "flex",
-              gap: 3,
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Water */}
-            <Card
-              sx={{
-                flex: "1 1 250px",
-                borderRadius: 4,
-                background: "#E3F2FD",
-                transition: "0.3s",
-                "&:hover": { transform: "translateY(-5px)" },
-              }}
-            >
-              <CardContent>
-                <Typography color="text.secondary">Water 💧</Typography>
-                <Typography variant="h4" fontWeight="bold">
-                  {water?.totalIntake || 0} L
-                </Typography>
-              </CardContent>
-            </Card>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3,
+          flexWrap: "wrap",
+          px: { xs: 2, sm: 6 },
+          py: { xs: 0, sm: 1 },
+        }}
+      >
+        {/* Tổng truyện */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#E3F2FD",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Stories 📚</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {totalStories}
+            </Typography>
+          </CardContent>
+        </Card>
 
-            {/* Nutrition */}
-            <Card
-              sx={{
-                flex: "1 1 250px",
-                borderRadius: 4,
-                background: "#FFF3E0",
-                transition: "0.3s",
-                "&:hover": { transform: "translateY(-5px)" },
-              }}
-            >
-              <CardContent>
-                <Typography color="text.secondary">Calories 🍎</Typography>
-                <Typography variant="h4" fontWeight="bold">
-                  {nutrition?.totalCalories || 0} kcal
-                </Typography>
-              </CardContent>
-            </Card>
+        {/* Tác giả */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#FFF3E0",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Authors ✍️</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {totalAuthors}
+            </Typography>
+          </CardContent>
+        </Card>
 
-            {/* Sleep */}
-            <Card
-              sx={{
-                flex: "1 1 250px",
-                borderRadius: 4,
-                background: "#E8F5E9",
-                transition: "0.3s",
-                "&:hover": { transform: "translateY(-5px)" },
-              }}
-            >
-              <CardContent>
-                <Typography color="text.secondary">Sleep 😴</Typography>
-                <Typography variant="h4" fontWeight="bold">
-                  {sleep?.totalSleep || 0} h
-                </Typography>
-              </CardContent>
-            </Card>
+        {/* Chapters */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#E8F5E9",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Chapters 📖</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {totalChapters}
+            </Typography>
+          </CardContent>
+        </Card>
 
-            {/* Workout */}
-            <Card
-              sx={{
-                flex: "1 1 250px",
-                borderRadius: 4,
-                background: "#F3E5F5",
-                transition: "0.3s",
-                "&:hover": { transform: "translateY(-5px)" },
-              }}
-            >
-              <CardContent>
-                <Typography color="text.secondary">Workout 💪</Typography>
-                <Typography variant="h4" fontWeight="bold">
-                  {workout?.totalMinutes || 0} min
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-      </Stack>
+        {/* Giá trung bình */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#F3E5F5",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Avg Price 💰</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {avgPrice}k
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Tổng truyện */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#FFECB3",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Total Revenue 💰</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {avgPrice * totalStories}k
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            xs: "repeat(2, 1fr)", // 👈 mobile 2 cột
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          }}
+          gap={{ xs: 1.5, sm: 2, md: 3 }}
+        >
+          {books.map((book: Book) => (
+            <Box key={book.id}>
+              <BookCard book={book} />
+            </Box>
+          ))}
+        </Box>
+      </Box>
+      {/* FOOTER */}
+      <Footer />
     </Box>
   );
 }

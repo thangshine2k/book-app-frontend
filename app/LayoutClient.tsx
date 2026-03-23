@@ -15,13 +15,14 @@ export default function LayoutClient({
 }) {
   const pathname = usePathname();
 
-  const hideSidebar = pathname === "/" || pathname === "/login" || pathname === "/register";
-  const isMobile = useMediaQuery("(max-width:560px)");
+  const hideSidebar =
+    pathname === "/" || pathname === "/login" || pathname === "/register";
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   return (
     <ThemeRegistry>
       <Providers>
-        <div style={{ display: "flex", background: "" }}>
+        <div style={{ display: "flex" }}>
           {/* ===== Desktop Sidebar ===== */}
           {!hideSidebar && !isMobile && (
             <Drawer
@@ -43,7 +44,6 @@ export default function LayoutClient({
           <main
             style={{
               flex: 1,
-              paddingBottom: !hideSidebar && isMobile ? 70 : 0, // 👈 tránh bị che bởi bottom bar
             }}
           >
             {children}

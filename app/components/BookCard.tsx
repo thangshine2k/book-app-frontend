@@ -1,5 +1,5 @@
 import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
-import { Book } from "../data/books";
+import { Book } from "../types/books";
 import { useRouter } from "next/navigation";
 
 export default function BookCard({ book }: { book: Book }) {
@@ -16,13 +16,11 @@ export default function BookCard({ book }: { book: Book }) {
           boxShadow: 6,
         },
       }}
+      onClick={() => {
+        router.push(`/books/${book.id}`);
+      }}
     >
-      <Box
-        position="relative"
-        onClick={() => {
-          router.push(`/books/${book.id}`);
-        }}
-      >
+      <Box position="relative">
         <CardMedia component="img" height="200" image={book.image} />
 
         {/* HOT badge */}
