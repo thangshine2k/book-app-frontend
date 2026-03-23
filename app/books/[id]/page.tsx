@@ -1,157 +1,196 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Box, Typography, Button } from "@mui/material";
-import { books } from "@/app/data/books";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  Paper,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from "@mui/material";
+import { useParams, useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import Image from "next/image";
-
-const fetchBook = async (id: number) => {
-  const book = books.find((b) => b.id === id);
-  if (!book) throw new Error("Not found");
-  return book;
-};
+import { api } from "@/app/service/api";
+import { useState } from "react";
+import { Chapter } from "@/app/types/books";
 
 export default function BookDetail() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params.id);
-  const [isReading, setIsReading] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const increase = () => {
-    setQuantity((prev) => prev + 1);
+  const [value, setValue] = useState<string>("");
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setValue(event.target.value);
   };
 
-  const decrease = () => {
-    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
-  };
-
-  const conanContent = `
-Shinichi Kudo là một thám tử học sinh nổi tiếng...
-
-Một ngày nọ, cậu bị hai kẻ áo đen tấn công và ép uống thuốc độc...
-
-Khi tỉnh dậy, cơ thể cậu đã bị teo nhỏ thành một đứa trẻ!
-
-Từ đó, cậu lấy tên là Conan Edogawa và bắt đầu hành trình phá án...
-`;
-  const {
-    data: book,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: book, isLoading } = useQuery({
     queryKey: ["book", id],
-    queryFn: () => fetchBook(id),
+    queryFn: async () => {
+      const res = await api.get(`/stories/${id}`);
+      return res.data;
+    },
     enabled: !!id,
-    staleTime: 1000 * 60 * 5,
   });
 
   if (isLoading) return <div>Loading...</div>;
-  if (error || !book) return <div>Not found</div>;
-  if (isReading) {
-    return (
-      <Box p={5}>
-        <Button onClick={() => setIsReading(false)}>← Quay lại</Button>
+  if (!book) return <div>Not found</div>;
 
-        <Typography variant="h4" fontWeight="bold" mt={2}>
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "#f5f5f5",
+        py: 4,
+      }}
+    >
+      {/* BACK */}
+      <Box px={2}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()}>
+          Quay lại
+        </Button>
+      </Box>
+
+      {/* HEADER */}
+      <Box textAlign="center" px={2} mt={2}>
+        <Typography variant="h5" fontWeight="bold" color="#2c7be5">
           {book.title}
         </Typography>
 
-        <Box
-          mt={3}
+        <Typography mt={1} fontSize={18}>
+          {book.title}
+        </Typography>
+
+        <Typography mt={2}>
+          Tác giả: <b>{book.author || "Đang cập nhật"}</b>
+        </Typography>
+
+        <Typography>
+          Thể loại: <span style={{ color: "#2c7be5" }}>Truyện</span>
+        </Typography>
+
+        {/* BUTTONS */}
+        <Stack direction="row" justifyContent="center" gap={2} mt={2}>
+          <Select
+            value={value}
+            displayEmpty
+            onChange={handleChange}
+            sx={{ minWidth: 160 }}
+          >
+            <MenuItem value="">
+              <em>Chọn chương</em>
+            </MenuItem>
+
+            {book?.chapters?.map((chap: Chapter) => (
+              <MenuItem key={chap.id} value={chap.id}>
+                {chap.title}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Button variant="contained" color="inherit">
+            →
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* CONTENT */}
+      <Box mt={4} display="flex" justifyContent="center">
+        <Paper
           sx={{
+            maxWidth: 700,
+            width: "100%",
+            p: 3,
             lineHeight: 1.8,
-            maxHeight: "80vh",
-            overflowY: "auto",
+            background: "#fafafa",
+            borderRadius: 2,
           }}
         >
-          <Typography whiteSpace="pre-line">{conanContent}</Typography>
-        </Box>
+          <Typography fontStyle="italic" mb={2}>
+            *Chương này có nội dung ảnh, nếu bạn không thấy nội dung chương, vui
+            lòng bật chế độ hiển thị hình ảnh của trình duyệt để đọc.
+          </Typography>
+
+          <Typography whiteSpace="pre-line">
+            {book.description || "Chưa có nội dung..."}
+          </Typography>
+        </Paper>
       </Box>
-    );
-  }
-  return (
-    <Box p={5}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => router.back()}>
-        Quay lại
-      </Button>
-      {/* Layout 2 cột */}
-      <Box display="flex" gap={5} mt={1}>
-        {/* LEFT: IMAGE */}
-        <Box sx={{ position: "relative", width: 350, height: 500 }}>
-          <Image
-            src={`/img/conan_${book.id}.webp`}
-            alt="book"
-            fill
-            style={{ objectFit: "cover", borderRadius: 12 }}
-          />
-        </Box>
+      <Box
+        sx={{
+          mt: 6,
+          background: "#f3f4f6",
+          px: { xs: 2, md: 6 },
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            xs: "1fr",
+            sm: "repeat(2,1fr)",
+            md: "repeat(3,1fr)",
+          }}
+          gap={4}
+        >
+          {/* Danh mục */}
+          <Box>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              Danh mục
+            </Typography>
 
-        {/* RIGHT: INFO */}
-        <Box flex={1}>
-          <Typography variant="h5" fontWeight="bold">
-            {book.title}
-          </Typography>
-
-          {/* rating fake */}
-          <Typography mt={1}>⭐ 5.0 | 18 đánh giá</Typography>
-
-          {/* price */}
-          <Typography
-            mt={2}
-            sx={{ fontSize: 28, color: "red", fontWeight: "bold" }}
-          >
-            {book.price}.000đ
-          </Typography>
-
-          {/* shipping */}
-          <Box mt={3}>
-            <Typography>🚚 Nhận từ 19 Th03 - 20 Th03</Typography>
-            <Typography color="green">Phí ship 0đ</Typography>
+            {[
+              "Văn học Việt Nam",
+              "Văn học nước ngoài",
+              "Lịch sử",
+              "Truyện cười hay",
+              "Chuyện kể cho bé",
+              "Giải thích Thành ngữ - Tục ngữ",
+              "Kho tàng truyện cổ tích Việt Nam",
+            ].map((item) => (
+              <Typography
+                key={item}
+                sx={{
+                  mb: 1,
+                  cursor: "pointer",
+                  "&:hover": { color: "#1976d2" },
+                }}
+              >
+                {item}
+              </Typography>
+            ))}
           </Box>
 
-          {/* policy */}
-          <Box mt={2}>
-            <Typography>
-              ✔ Trả hàng miễn phí 15 ngày • Chính hãng 100%
+          {/* Giới thiệu */}
+          <Box>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              MangaStore
+            </Typography>
+
+            <Typography variant="body2">
+              Nền tảng đọc truyện online miễn phí, cập nhật nhanh nhất.
             </Typography>
           </Box>
 
-          {/* quantity */}
-          <Box mt={3} display="flex" alignItems="center" gap={2}>
-            <Typography>Số lượng</Typography>
+          {/* Liên hệ */}
+          <Box>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              Liên hệ
+            </Typography>
 
-            <Box display="flex" alignItems="center" gap={1}>
-              <Button variant="outlined" onClick={decrease}>
-                -
-              </Button>
-
-              <Typography>{quantity}</Typography>
-
-              <Button variant="outlined" onClick={increase}>
-                +
-              </Button>
-            </Box>
+            <Typography>Email: manga@gmail.com</Typography>
+            <Typography>Hotline: 0123456789</Typography>
           </Box>
+        </Box>
 
-          {/* buttons */}
-          <Box mt={4} display="flex" gap={2}>
-            <Button variant="outlined" color="error">
-              Thêm vào giỏ hàng
-            </Button>
-
-            <Button variant="contained" color="error">
-              Mua ngay
-            </Button>
-          </Box>
-          <Box mt={4} display="flex" gap={2} onClick={() => setIsReading(true)}>
-            <Button variant="contained" color="error">
-              Đọc ngay tại đây
-            </Button>
-          </Box>
+        {/* ===== COPYRIGHT ===== */}
+        <Box mt={5} pt={3} borderTop="1px solid #ddd" textAlign="center">
+          <Typography variant="body2" color="text.secondary">
+            © 2026 MangaStore. All rights reserved.
+          </Typography>
         </Box>
       </Box>
     </Box>
