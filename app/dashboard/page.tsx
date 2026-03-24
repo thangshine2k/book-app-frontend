@@ -24,26 +24,30 @@ export default function Dashboard() {
 
   const [token, setToken] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const { data: books = [] } = useQuery({
-    queryKey: ["books"],
-    queryFn: async () => {
-      const res = await api.get("/stories");
-      return res.data;
-    },
+  const { data } = useQuery({
+    queryKey: ["stories"],
+    queryFn: async () => (await api.get("/stories")).data,
+    select: (data) => ({
+      books: data,
+      stories: data.map((item: Story) => ({
+        id: item.id,
+        title: item.title,
+        author: item.author,
+        price: item.price,
+      })),
+    }),
   });
+  const { stories = [], books = [] } = data || {};
   useEffect(() => {
     setToken(localStorage.getItem("token"));
     setMounted(true);
   }, []);
 
-  const { data: stories = [] } = useQuery<Story[]>({
-    queryKey: ["stories"],
-    queryFn: async () => (await api.get("/stories")).data,
-  });
   const totalStories = stories.length;
 
-  const totalAuthors = new Set(stories.map((s) => s.author).filter(Boolean))
-    .size;
+  const totalAuthors = new Set(
+    stories.map((s: Story) => s.author).filter(Boolean),
+  ).size;
 
   // ===== Logout =====
   const handleLogout = () => {
