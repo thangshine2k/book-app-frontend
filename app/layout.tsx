@@ -14,7 +14,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: "#1f1f1f" }}>
+      <body
+        style={{
+          margin: 0,
+          background: "#1f1f1f",
+          height: "100%",
+          overflowX: "hidden",
+          width: "100%",
+        }}
+      >
         <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
