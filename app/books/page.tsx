@@ -19,7 +19,7 @@ export default function BooksPage() {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <Box display="flex" flexDirection="column" minHeight="100vh">
+    <Box display="flex" flexDirection="column" minHeight="100vh" mt={3}>
       {/* MAIN */}
       <Box flex={1} mt={4} p={{ xs: 2, sm: 3, md: 4 }}>
         {/* 🔥 HOT */}
@@ -53,7 +53,7 @@ export default function BooksPage() {
           }}
           gap={{ xs: 1.5, sm: 2, md: 3 }}
         >
-          {data.map((book : Book) => (
+          {data.map((book: Book) => (
             <BookCard key={book.id} book={book} />
           ))}
         </Box>
