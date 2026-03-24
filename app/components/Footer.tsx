@@ -38,9 +38,21 @@ export const Footer = () => {
           <Typography variant="h6" mb={1}>
             Links
           </Typography>
-          <Typography variant="body2" onClick={() => router.push("/")}>Home</Typography>
-          <Typography variant="body2" onClick={() => router.push("/trending")}>Hot Manga</Typography>
-          <Typography variant="body2" onClick={() => router.push("/categories")}>Categories</Typography>
+          <Typography
+            variant="body2"
+            onClick={() => router.push("/")}
+            sx={{ cursor: "pointer" }}
+          >
+            Home
+          </Typography>
+          <Typography
+            variant="body2"
+            onClick={() => router.push("/trending")}
+            sx={{ cursor: "pointer" }}
+          >
+            Hot Manga
+          </Typography>
+          <Typography variant="body2">Categories</Typography>
         </Box>
 
         {/* Contact */}

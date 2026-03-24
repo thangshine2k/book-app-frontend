@@ -25,7 +25,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import HistoryIcon from "@mui/icons-material/History";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Book } from "../types/books";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../service/api";
+import Image from "next/image";
+import { useSearchBooks } from "../hooks/useSearchBooks";
+import { useLockBodyScroll } from "../hooks/useLockBodyScroll";
 
 const menuMain = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
@@ -45,6 +51,26 @@ export const Sidebar = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width:768px)");
   const [open, setOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [keyword, setKeyword] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (showSearch) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [showSearch]);
+
+  const { data: books = [] } = useQuery({
+    queryKey: ["search-books"],
+    queryFn: async () => (await api.get("/stories")).data,
+  });
+
+  const results = useSearchBooks(books, keyword);
+
+  useLockBodyScroll(showSearch);
 
   const renderMenu = (items: typeof menuMain) => (
     <List>
@@ -152,9 +178,135 @@ export const Sidebar = () => {
     </Box>
   );
 
+  // useEffect(() => {
+  //   if (showSearch) {
+  //     const scrollY = window.scrollY;
+
+  //     document.body.style.position = "fixed";
+  //     document.body.style.top = `-${scrollY}px`;
+  //     document.body.style.left = "0";
+  //     document.body.style.right = "0";
+  //     document.body.style.width = "100%"; // ✅ THÊM DÒNG NÀY
+  //   } else {
+  //     const scrollY = document.body.style.top;
+
+  //     document.body.style.position = "";
+  //     document.body.style.top = "";
+  //     document.body.style.left = "";
+  //     document.body.style.right = "";
+  //     document.body.style.width = ""; // reset
+
+  //     if (scrollY) {
+  //       window.scrollTo(0, parseInt(scrollY || "0") * -1);
+  //     }
+  //   }
+  // }, [showSearch]);
+
   return (
     <>
       {/* ===== MOBILE TOP BAR ===== */}
+
+      {isMobile && showSearch && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 56,
+            left: 0,
+            width: "100%",
+            height: "100dvh",
+            zIndex: 1400,
+          }}
+        >
+          {/* overlay click to close */}
+          <Box
+            onClick={() => setShowSearch(false)}
+            sx={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.4)",
+            }}
+          />
+
+          {/* search box */}
+          <Box
+            sx={{
+              position: "relative",
+              background: "#1f1f1f",
+              px: 2,
+              py: 1,
+              borderBottom: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {/* INPUT */}
+            <Box
+              component="input"
+              ref={inputRef}
+              placeholder="Search manga..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "12px",
+                fontSize: "16px", // cực quan trọng (fix iOS zoom)
+                borderRadius: "8px",
+                border: "none",
+                outline: "none",
+              }}
+            />
+
+            {/* RESULT */}
+            {results.length > 0 && (
+              <Box mt={1}>
+                {results.map((item: Book) => (
+                  <Box
+                    key={item.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      p: 1,
+                      borderRadius: 2,
+                      touchAction: "none",
+                      cursor: "pointer",
+                      "&:hover": {
+                        background: "rgba(255,255,255,0.1)",
+                      },
+                    }}
+                    onClick={() => {
+                      router.push(`/books/${item.id}`);
+                      setShowSearch(false);
+                      setKeyword("");
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 50,
+                        position: "relative",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        style={{ objectFit: "cover", borderRadius: 4 }}
+                      />
+                    </Box>
+
+                    <Typography fontSize={14} noWrap sx={{ color: "white" }}>
+                      {item.title}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
+        </Box>
+      )}
+
+      {/* ===== MOBILE SIDEBAR ===== */}
       {isMobile && (
         <Box
           sx={{
@@ -188,7 +340,7 @@ export const Sidebar = () => {
             onClick={() => router.push("/")}
           />
 
-          <IconButton>
+          <IconButton onClick={() => setShowSearch((prev) => !prev)}>
             <SearchIcon sx={{ color: "#fff", mr: 3 }} />
           </IconButton>
         </Box>
@@ -217,7 +369,7 @@ export const Sidebar = () => {
         <Box
           sx={{
             width: 260,
-            height: "100vh",
+            height: "100dvh",
             position: "fixed",
             top: 0,
             left: 0,
