@@ -1,5 +1,11 @@
-"use client";
 import LayoutClient from "./LayoutClient";
+
+export const metadata = {
+  title: "Manga App",
+  icons: {
+    icon: "/manga-1.png",
+  },
+};
 
 export default function RootLayout({
   children,

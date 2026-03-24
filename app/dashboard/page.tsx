@@ -45,17 +45,6 @@ export default function Dashboard() {
   const totalAuthors = new Set(stories.map((s) => s.author).filter(Boolean))
     .size;
 
-  const totalChapters = stories.reduce(
-    (sum, s) => sum + (s.totalChapters || 0),
-    0,
-  );
-
-  const avgPrice =
-    stories.length > 0
-      ? Math.round(
-          stories.reduce((sum, s) => sum + (s.price || 0), 0) / stories.length,
-        )
-      : 0;
   // ===== Logout =====
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -84,16 +73,25 @@ export default function Dashboard() {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        mt: 3,
+        mt: { xs: 3, sm: 0, md: 0, lg: 1 },
       }}
     >
       {/* ===== Header ===== */}
       <AppBar
         position="static"
         elevation={0}
-        sx={{ background: "transparent", color: "#000", mt: 4 }}
+        sx={{
+          background: "transparent",
+          color: "#000",
+          mt: { xs: 4, sm: 0, md: 0, lg: 0 },
+        }}
       >
-        <Toolbar sx={{ justifyContent: "flex-end" }}>
+        <Toolbar
+          sx={{
+            justifyContent: "flex-end",
+            mr: { xs: 0, sm: 0, md: 0, lg: 3 },
+          }}
+        >
           <Button
             onClick={handleLogout}
             sx={{
@@ -151,54 +149,6 @@ export default function Dashboard() {
             <Typography color="text.secondary">Authors ✍️</Typography>
             <Typography variant="h4" fontWeight="bold">
               {totalAuthors}
-            </Typography>
-          </CardContent>
-        </Card>
-
-        {/* Chapters */}
-        <Card
-          sx={{
-            flex: "1 1 250px",
-            borderRadius: 4,
-            background: "#E8F5E9",
-          }}
-        >
-          <CardContent>
-            <Typography color="text.secondary">Chapters 📖</Typography>
-            <Typography variant="h4" fontWeight="bold">
-              {totalChapters}
-            </Typography>
-          </CardContent>
-        </Card>
-
-        {/* Giá trung bình */}
-        <Card
-          sx={{
-            flex: "1 1 250px",
-            borderRadius: 4,
-            background: "#F3E5F5",
-          }}
-        >
-          <CardContent>
-            <Typography color="text.secondary">Avg Price 💰</Typography>
-            <Typography variant="h4" fontWeight="bold">
-              {avgPrice}k
-            </Typography>
-          </CardContent>
-        </Card>
-
-        {/* Tổng truyện */}
-        <Card
-          sx={{
-            flex: "1 1 250px",
-            borderRadius: 4,
-            background: "#FFECB3",
-          }}
-        >
-          <CardContent>
-            <Typography color="text.secondary">Total Revenue 💰</Typography>
-            <Typography variant="h4" fontWeight="bold">
-              {avgPrice * totalStories}k
             </Typography>
           </CardContent>
         </Card>
