@@ -167,7 +167,7 @@ export const Sidebar = () => {
             alignItems: "center",
             justifyContent: "space-between",
             px: 2,
-            background: "#1f1f1f",
+            background: "black",
             zIndex: 1300,
           }}
         >
@@ -176,7 +176,7 @@ export const Sidebar = () => {
           </IconButton>
           <CardMedia
             component="img"
-            image="https://res.cloudinary.com/df0nepumo/image/upload/f_jpg/q_auto:best/manga_zqaaxs"
+            image="https://res.cloudinary.com/df0nepumo/image/upload/manga-1_djdd6g"
             sx={{
               width: 32,
               height: 32,

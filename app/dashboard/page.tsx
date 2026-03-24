@@ -15,15 +15,22 @@ import {
   Box,
   Button,
 } from "@mui/material";
-import { Story } from "../types/books";
+import { Book, Story } from "../types/books";
 import { Footer } from "../components/Footer";
+import BookCard from "../components/BookCard";
 
 export default function Dashboard() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-
+  const { data: books = [] } = useQuery({
+    queryKey: ["books"],
+    queryFn: async () => {
+      const res = await api.get("/stories");
+      return res.data;
+    },
+  });
   useEffect(() => {
     setToken(localStorage.getItem("token"));
     setMounted(true);
@@ -72,22 +79,21 @@ export default function Dashboard() {
   }
 
   return (
-  <Box
-    sx={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-    }}
-  >
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        mt: 3,
+      }}
+    >
       {/* ===== Header ===== */}
       <AppBar
         position="static"
         elevation={0}
-        sx={{ background: "transparent", color: "#000", px: 1 }}
+        sx={{ background: "transparent", color: "#000", mt: 4 }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant="h6">Dashboard</Typography>
-
+        <Toolbar sx={{ justifyContent: "flex-end" }}>
           <Button
             onClick={handleLogout}
             sx={{
@@ -113,6 +119,8 @@ export default function Dashboard() {
           display: "flex",
           gap: 3,
           flexWrap: "wrap",
+          px: { xs: 2, sm: 6 },
+          py: { xs: 0, sm: 1 },
         }}
       >
         {/* Tổng truyện */}
@@ -178,6 +186,38 @@ export default function Dashboard() {
             </Typography>
           </CardContent>
         </Card>
+
+        {/* Tổng truyện */}
+        <Card
+          sx={{
+            flex: "1 1 250px",
+            borderRadius: 4,
+            background: "#FFECB3",
+          }}
+        >
+          <CardContent>
+            <Typography color="text.secondary">Total Revenue 💰</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {avgPrice * totalStories}k
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            xs: "repeat(2, 1fr)", // 👈 mobile 2 cột
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          }}
+          gap={{ xs: 1.5, sm: 2, md: 3 }}
+        >
+          {books.map((book: Book) => (
+            <Box key={book.id}>
+              <BookCard book={book} />
+            </Box>
+          ))}
+        </Box>
       </Box>
       {/* FOOTER */}
       <Footer />

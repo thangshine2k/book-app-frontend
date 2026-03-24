@@ -30,64 +30,89 @@ export default function TrendingPage() {
   const gridList = data.slice(5);
 
   return (
-    <Box display="flex" flexDirection="column" minHeight="100vh">
-      <Box p={{ xs: 2, md: 4 }} mt={4}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      minHeight="100vh"
+      sx={{
+        overflowX: "hidden",
+        boxSizing: "border-box",
+        mt: 3,
+      }}
+    >
+      <Box p={{ xs: 2, sm: 3, md: 4 }} mt={4} mx="auto">
         {/* ===== HERO TOP 1 ===== */}
-        {top1 && (
-          <Paper
-            sx={{
-              position: "relative",
-              height: { xs: 200, md: 300 },
-              borderRadius: 4,
-              overflow: "hidden",
-              cursor: "pointer",
-              mb: 4,
-            }}
-            onClick={() => router.push(`/books/${top1.id}`)}
-          >
-            <Image
-              src={top1.image}
-              alt={top1.title}
-              fill
-              style={{ objectFit: "cover" }}
-            />
-
-            {/* overlay */}
-            <Box
+        <Box display="flex" justifyContent="center">
+          {top1 && (
+            <Paper
               sx={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
-                p: 3,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                color: "#fff",
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                aspectRatio: "2/1",
+                borderRadius: 4,
+                overflow: "hidden",
+                mx: "auto",
+                cursor: "pointer",
+                mb: 4,
+                background: "#000",
               }}
+              onClick={() => router.push(`/books/${top1.id}`)}
             >
-              <Typography variant="h5" fontWeight="bold">
-                {top1.title}
-              </Typography>
-              <Typography variant="body2">
-                ✍ {top1.author} • 📖 {top1.totalChapters} chapters
-              </Typography>
-            </Box>
-          </Paper>
-        )}
+              <Image
+                src={top1.image}
+                alt={top1.title}
+                fill
+                style={{ objectFit: "cover" }}
+              />
+
+              {/* overlay */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
+                  p: { xs: 1.5, sm: 2, md: 3 },
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-end",
+                  color: "#fff",
+                  mx: "auto",
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{ fontSize: { xs: 16, sm: 18, md: 22 } }}
+                >
+                  {top1.title}
+                </Typography>
+
+                <Typography sx={{ fontSize: { xs: 12, sm: 14 } }}>
+                  ✍ {top1.author} • 📖 {top1.totalChapters}
+                </Typography>
+              </Box>
+            </Paper>
+          )}
+        </Box>
 
         {/* ===== TOP LIST (2-5) ===== */}
+
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: {
-              xs: "1fr", // mobile 1 cột
+              xs: "1fr",
               sm: "repeat(2, 1fr)",
               md: "repeat(3, 1fr)",
               lg: "repeat(4, 1fr)",
             },
             gap: 2,
             mb: 4,
+            width: { xs: "92%", sm: "94%", md: "96%", lg: "96%" },
+            minWidth: 0,
+            boxSizing: "border-box",
           }}
         >
           {topList.map((book, index) => (
@@ -99,19 +124,17 @@ export default function TrendingPage() {
                 p: 2,
                 borderRadius: 3,
                 cursor: "pointer",
-                transition: "0.3s",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 3,
-                },
+                minWidth: 0,
+                width: "100%",
+                overflow: "hidden",
               }}
               onClick={() => router.push(`/books/${book.id}`)}
             >
               {/* IMAGE */}
               <Box
                 sx={{
-                  width: 60,
-                  height: 80,
+                  width: { xs: 70, sm: 80, md: 90 },
+                  height: { xs: 70, sm: 80, md: 90 },
                   position: "relative",
                   flexShrink: 0,
                 }}
@@ -125,8 +148,11 @@ export default function TrendingPage() {
               </Box>
 
               {/* INFO */}
-              <Box>
-                <Typography fontWeight="bold" noWrap>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  fontWeight="bold"
+                  sx={{ fontSize: { xs: 13, sm: 14 } }}
+                >
                   #{index + 1} {book.title}
                 </Typography>
 
@@ -142,14 +168,19 @@ export default function TrendingPage() {
           📚 More Trending
         </Typography>
 
+        {/* ===== GRID LIST ===== */}
         <Box
           display="grid"
-          gridTemplateColumns={{
-            xs: "repeat(1,1fr)",
-            sm: "repeat(3,1fr)",
-            md: "repeat(5,1fr)",
+          sx={{
+            width: "100%",
+            minWidth: 0,
           }}
-          gap={2}
+          gridTemplateColumns={{
+            xs: "repeat(2, 1fr)", // 👈 giống BooksPage
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          }}
+          gap={{ xs: 1.5, sm: 2, md: 3 }}
         >
           {gridList.map((book) => (
             <Box
@@ -169,7 +200,7 @@ export default function TrendingPage() {
                 sx={{
                   position: "relative",
                   width: "100%",
-                  paddingTop: "140%",
+                  aspectRatio: "2/3", // ✅ thay paddingTop
                   borderRadius: 2,
                   overflow: "hidden",
                 }}
@@ -188,11 +219,12 @@ export default function TrendingPage() {
                 color="white"
                 fontWeight="bold"
                 sx={{
+                  fontSize: { xs: 12, sm: 14 },
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
-                  minHeight: "3em",
+                  minHeight: "2.8em",
                 }}
               >
                 {book.title}
@@ -201,6 +233,7 @@ export default function TrendingPage() {
           ))}
         </Box>
       </Box>
+
       <Footer />
     </Box>
   );
