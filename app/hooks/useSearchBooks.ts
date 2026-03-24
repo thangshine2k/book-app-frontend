@@ -13,8 +13,13 @@ export const useSearchBooks = (books: Book[], keyword: string) => {
   return useMemo(() => {
     if (!keyword.trim()) return [];
 
-    const key = normalize(keyword);
+    const chars = normalize(keyword).split("");
 
-    return books.filter((b) => normalize(b.title).includes(key)).slice(0, 5);
+    return books
+      .filter((b: Book) => {
+        const title = normalize(b.title);
+        return chars.every((c) => title.includes(c));
+      })
+      .slice(0, 5);
   }, [books, keyword]);
 };
