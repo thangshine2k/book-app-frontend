@@ -25,11 +25,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import HistoryIcon from "@mui/icons-material/History";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Book } from "../types/books";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../service/api";
 import Image from "next/image";
+import { useSearchBooks } from "../hooks/useSearchBooks";
+import { useLockBodyScroll } from "../hooks/useLockBodyScroll";
 
 const menuMain = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
@@ -51,32 +53,24 @@ export const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (showSearch) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [showSearch]);
 
   const { data: books = [] } = useQuery({
     queryKey: ["search-books"],
     queryFn: async () => (await api.get("/stories")).data,
   });
 
-  const normalize = (str: string) =>
-    str
-      .toLowerCase()
-      .normalize("NFD") // tách dấu
-      .replace(/[\u0300-\u036f]/g, "") // xoá dấu
-      .replace(/đ/g, "d") // xử lý riêng tiếng Việt
-      .replace(/[^a-z0-9]/g, ""); // xoá space + ký tự đặc biệt
+  const results = useSearchBooks(books, keyword);
 
-  const results = useMemo(() => {
-    if (!keyword.trim()) return [];
-
-    const keywords = normalize(keyword).split("");
-
-    return books
-      .filter((b: Book) => {
-        const title = normalize(b.title);
-        return keywords.every((k) => title.includes(k));
-      })
-      .slice(0, 5);
-  }, [keyword, books]);
+  useLockBodyScroll(showSearch);
 
   const renderMenu = (items: typeof menuMain) => (
     <List>
@@ -184,6 +178,30 @@ export const Sidebar = () => {
     </Box>
   );
 
+  // useEffect(() => {
+  //   if (showSearch) {
+  //     const scrollY = window.scrollY;
+
+  //     document.body.style.position = "fixed";
+  //     document.body.style.top = `-${scrollY}px`;
+  //     document.body.style.left = "0";
+  //     document.body.style.right = "0";
+  //     document.body.style.width = "100%"; // ✅ THÊM DÒNG NÀY
+  //   } else {
+  //     const scrollY = document.body.style.top;
+
+  //     document.body.style.position = "";
+  //     document.body.style.top = "";
+  //     document.body.style.left = "";
+  //     document.body.style.right = "";
+  //     document.body.style.width = ""; // reset
+
+  //     if (scrollY) {
+  //       window.scrollTo(0, parseInt(scrollY || "0") * -1);
+  //     }
+  //   }
+  // }, [showSearch]);
+
   return (
     <>
       {/* ===== MOBILE TOP BAR ===== */}
@@ -195,6 +213,7 @@ export const Sidebar = () => {
             top: 56,
             left: 0,
             width: "100%",
+            height: "100dvh",
             zIndex: 1400,
           }}
         >
@@ -221,13 +240,15 @@ export const Sidebar = () => {
             {/* INPUT */}
             <Box
               component="input"
-              autoFocus
+              ref={inputRef}
               placeholder="Search manga..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               style={{
-                width: "94%",
-                padding: "10px",
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "12px",
+                fontSize: "16px", // cực quan trọng (fix iOS zoom)
                 borderRadius: "8px",
                 border: "none",
                 outline: "none",
@@ -246,6 +267,7 @@ export const Sidebar = () => {
                       gap: 1,
                       p: 1,
                       borderRadius: 2,
+                      touchAction: "none",
                       cursor: "pointer",
                       "&:hover": {
                         background: "rgba(255,255,255,0.1)",
@@ -283,6 +305,8 @@ export const Sidebar = () => {
           </Box>
         </Box>
       )}
+
+      {/* ===== MOBILE SIDEBAR ===== */}
       {isMobile && (
         <Box
           sx={{
@@ -345,7 +369,7 @@ export const Sidebar = () => {
         <Box
           sx={{
             width: 260,
-            height: "100vh",
+            height: "100dvh",
             position: "fixed",
             top: 0,
             left: 0,
